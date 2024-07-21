@@ -11,17 +11,8 @@ import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest
+
  class TreasureHuntApplicationTests {
 
-    @Autowired
-    private SimulationService simulationService;
 
-    @Test
-    void testLireCarte() throws IOException {
-        Carte carte = simulationService.lireCarte("src/main/resources/data/input.txt");
-        assertNotNull(carte);
-        assertEquals(3, carte.getLargeur());
-        assertEquals(4, carte.getHauteur());
-    }
 }

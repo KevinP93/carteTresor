@@ -5,6 +5,7 @@ import fr.carbonIT.treasurehunt.model.Carte;
 import fr.carbonIT.treasurehunt.model.Montagne;
 import fr.carbonIT.treasurehunt.model.Tresor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -16,6 +17,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class SimulationService {
+
+    @Autowired
+    private CreationFichierService creationFichierService;
+
 
     /**
      * Lit un fichier et crée une carte en fonction de son contenu.
@@ -68,113 +73,158 @@ public class SimulationService {
 
     /**
      * Exécute la simulation des mouvements des aventuriers sur la carte.
-     * <p>
-     * Cette méthode parcourt les aventuriers, traite leurs mouvements selon les instructions, et gère les
-     * collisions et interactions avec les trésors et montagnes. Les mouvements sont traités un par un
-     * pour chaque aventurier et les conflits de position sont vérifiés.
-     * </p>
      *
-     * @param carte L'objet {@link Carte} contenant les informations sur la carte, les montagnes, les trésors, et les aventuriers.
-     * @return L'objet {@link Carte} après avoir exécuté la simulation.
+     * La méthode gère le déplacement des aventuriers en fonction de leurs mouvements
+     * spécifiés. Elle continue la simulation jusqu'à ce que tous les mouvements aient
+     * été traités. Une fois la simulation terminée, elle crée un fichier de sortie
+     * contenant l'état final de la carte.
+     *
+     * @param carte La carte contenant les aventuriers et les autres éléments du jeu.
+     * @return La carte mise à jour après l'exécution de la simulation.
      */
     public Carte executerSimulation(Carte carte) {
+        List<Aventurier> aventuriers = new ArrayList<>(carte.getAventuriers());
+        int nombreAventuriers = aventuriers.size();
 
-        // Utilisation d'un Set pour vérifier les conflits d'aventuriers
-        Set<String> positionsAventuriers = new HashSet<>();
+        boolean simulationContinue = true;
 
-        for (Aventurier aventurier : carte.getAventuriers()) {
-            if (aventurier.getMouvements() != null) {
-                if (!processerMouvements(aventurier, carte, positionsAventuriers)) {
-                    return carte; // Sortir de la méthode en cas de conflit
+        while (simulationContinue) {
+            simulationContinue = false;
+            for (int i = 0; i < nombreAventuriers; i++) {
+                Aventurier aventurier = aventuriers.get(i);
+
+                if (aventurier.getMouvements() != null && !aventurier.getMouvements().isEmpty()) {
+                    char mouvement = aventurier.getMouvements().charAt(0); // Obtenir le prochain mouvement
+                    aventurier.setMouvements(aventurier.getMouvements().substring(1)); // Enlever le mouvement traité
+
+                    switch (mouvement) {
+                        case 'A':
+                            deplacerAventurier(aventurier, carte);
+                            break;
+                        case 'D':
+                            aventurier.setOrientation(tournerDroite(aventurier.getOrientation()));
+                            break;
+                        case 'G':
+                            aventurier.setOrientation(tournerGauche(aventurier.getOrientation()));
+                            break;
+                    }
+
+                    // Vérifiez si l'aventurier a encore des mouvements à faire
+                    if (!aventurier.getMouvements().isEmpty()) {
+                        simulationContinue = true; // Continuer la simulation si des mouvements restent
+                    }
                 }
             }
+        }
+
+        // Affichage du résultat
+        for (Aventurier aventurier : carte.getAventuriers()) {
             System.out.println(aventurier.getNom() + " a trouvé : " + aventurier.getTresorsCollectes() + " trésor(s)");
         }
 
-
+        // Crée le fichier de sortie après la simulation
+        try {
+            creationFichierService.creerFichierCarte(carte, "output.txt");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return carte;
     }
 
 
     /**
-     * Traite les mouvements d'un aventurier sur la carte.
-     * <p>
-     * Cette méthode applique les mouvements spécifiés pour un aventurier, met à jour sa position en fonction de son orientation,
-     * et vérifie les collisions avec les montagnes. Les mouvements sont traités un par un et la méthode renvoie un indicateur
-     * de conflit si deux aventuriers se retrouvent sur la même case.
-     * </p>
+     * Déplace un aventurier sur la carte en fonction de son orientation actuelle.
      *
-     * @param aventurier L'aventurier dont les mouvements doivent être traités.
-     * @param carte L'objet {@link Carte} contenant les informations nécessaires pour le déplacement et les collisions.
-     * @param positionsAventuriers Un ensemble contenant les positions des aventuriers pour détecter les conflits de position.
-     * @return {@code true} si les mouvements ont été traités sans conflit ; {@code false} en cas de conflit de position.
-     */
-    private boolean processerMouvements(Aventurier aventurier, Carte carte, Set<String> positionsAventuriers) {
-        //TODO: dabord verifier s'il y a plsr aventurier sur la carte
-        for (char mouvement : aventurier.getMouvements().toCharArray()) {
-            switch (mouvement) {
-                case 'A':
-                    deplacerAventurier(aventurier,carte);
-                    break;
-                case 'D':
-                    aventurier.setOrientation(tournerDroite(aventurier.getOrientation()));
-                    break;
-                case 'G':
-                    aventurier.setOrientation(tournerGauche(aventurier.getOrientation()));
-                    break;
-            }
-
-            /*
-            // Vérifier les conflits d'aventuriers
-            String positionKey = aventurier.getX() + "," + aventurier.getY();
-            if (positionsAventuriers.contains(positionKey)) {
-                System.out.println("Erreur : Deux aventuriers sont sur la même case (" + positionKey + ") !");
-                return false; // Signaler un conflit
-            }
-            positionsAventuriers.add(positionKey);*/
-
-
-
-            // Vérifier si l'aventurier rencontre une montagne
-            for (Montagne montagne : carte.getMontagnes()) {
-                if (aventurier.getX() == montagne.getX() && aventurier.getY() == montagne.getY()) {
-                    System.out.println(aventurier.getNom() + " est arrêté par une montagne.");
-                    // TODO : Ajoutez une logique ici
-                }
-            }
-        }
-        return true; // Aucun conflit trouvé
-    }
-
-
-    /**
-     * Déplace un aventurier en fonction de son orientation actuelle et collecte un trésor s'il est présent sur la case.
-     * <p>
-     * Cette méthode met à jour la position de l'aventurier en fonction de son orientation actuelle
-     * et appelle la méthode {@link #collecterTresor(Aventurier, Carte)} pour gérer la collecte des trésors
-     * sur la case actuelle.
-     * </p>
+     * La méthode calcule la nouvelle position de l'aventurier en fonction de son orientation,
+     * vérifie si cette position est valide et libre, puis déplace l'aventurier à cette position
+     * si toutes les conditions sont remplies. Si l'aventurier se déplace sur une case contenant
+     * un trésor, il le collecte. Si la position n'est pas valide ou est occupée, le déplacement est annulé.
      *
      * @param aventurier L'aventurier à déplacer.
-     * @param carte L'objet {@link Carte} contenant les informations nécessaires pour le déplacement et la collecte des trésors.
+     * @param carte La carte sur laquelle se trouve l'aventurier.
      */
     private void deplacerAventurier(Aventurier aventurier, Carte carte) {
+        // Sauvegarde la position actuelle
+        int xInitial = aventurier.getX();
+        int yInitial = aventurier.getY();
+
+        // Calcule la nouvelle position en fonction de l'orientation
+        int nouvelleX = xInitial;
+        int nouvelleY = yInitial;
+
         switch (aventurier.getOrientation()) {
             case 'N':
-                aventurier.setY(aventurier.getY() - 1);
+                nouvelleY -= 1;
                 break;
             case 'S':
-                aventurier.setY(aventurier.getY() + 1);
+                nouvelleY += 1;
                 break;
             case 'E':
-                aventurier.setX(aventurier.getX() + 1);
+                nouvelleX += 1;
                 break;
             case 'O':
-                aventurier.setX(aventurier.getX() - 1);
+                nouvelleX -= 1;
                 break;
         }
-        collecterTresor(aventurier, carte);
+
+        // Vérifie si la nouvelle position est valide et libre
+        if (verifierPositionValide(nouvelleX, nouvelleY, aventurier, carte)) {
+            // Déplace l'aventurier à la nouvelle position
+            aventurier.setX(nouvelleX);
+            aventurier.setY(nouvelleY);
+
+            // Collecte un trésor si possible
+            collecterTresor(aventurier, carte);
+        } else {
+            // Annule le déplacement si la position n'est pas valide ou est occupée
+            System.out.println(aventurier.getNom() + " ne peut pas se déplacer vers (" + nouvelleX + "," + nouvelleY + ").");
+        }
     }
+
+    /**
+     * Vérifie si une position donnée est valide pour le déplacement d'un aventurier.
+     *
+     * La méthode vérifie plusieurs conditions pour déterminer si une position est
+     * valide pour le déplacement d'un aventurier. Elle vérifie si la position est
+     * dans les limites de la carte, si elle n'est pas occupée par une montagne et si
+     * elle n'est pas déjà occupée par un autre aventurier.
+     *
+     * @param x La coordonnée X de la position à vérifier.
+     * @param y La coordonnée Y de la position à vérifier.
+     * @param aventurierCourant L'aventurier qui tente de se déplacer. Ce paramètre
+     *                           est utilisé pour ignorer cet aventurier lors de la
+     *                           vérification de la présence d'autres aventuriers à la
+     *                           même position.
+     * @param carte La carte sur laquelle se fait la vérification. Contient les informations
+     *              sur les montagnes et les autres aventuriers présents.
+     * @return true si la position est valide et libre, false sinon.
+     */
+    private boolean verifierPositionValide(int x, int y, Aventurier aventurierCourant, Carte carte) {
+        // Vérifie les limites de la carte
+        if (x < 0 || x >= carte.getLargeur() || y < 0 || y >= carte.getHauteur()) {
+            return false;
+        }
+
+        // Vérifie le nbr de montagnes
+        for (Montagne montagne : carte.getMontagnes()) {
+            if (montagne.getX() == x && montagne.getY() == y) {
+                System.out.println("Position (" + x + "," + y + ") est bloquée par une montagne.");
+                return false;
+            }
+        }
+
+        // Vérifie la présence d'autres aventuriers
+        boolean positionOccupee = carte.getAventuriers().stream()
+                .anyMatch(a -> !a.equals(aventurierCourant) && a.getX() == x && a.getY() == y);
+
+        if (positionOccupee) {
+            System.out.println("Position (" + x + "," + y + ") est déjà occupée par un autre aventurier.");
+        }
+
+        return !positionOccupee;
+    }
+
+
 
     /**
      * Gère l'orientation de l'aventurier vers la droite.
@@ -186,7 +236,7 @@ public class SimulationService {
      * @param orientation La direction actuelle de l'aventurier. Peut être 'N' (Nord), 'E' (Est), 'S' (Sud) ou 'O' (Ouest).
      * @return La nouvelle orientation de l'aventurier après avoir tourné à droite. Retourne l'orientation actuelle si elle est invalide.
      */
-    private char tournerDroite(char orientation) {
+    char tournerDroite(char orientation) {
         switch (orientation) {
             case 'N':
                 return 'E';
@@ -211,7 +261,7 @@ public class SimulationService {
      * @param orientation La direction actuelle de l'aventurier. Peut être 'N' (Nord), 'E' (Est), 'S' (Sud) ou 'O' (Ouest).
      * @return La nouvelle orientation de l'aventurier après avoir tourné à gauche. Retourne l'orientation actuelle si elle est invalide.
      */
-    private char tournerGauche(char orientation) {
+    char tournerGauche(char orientation) {
         switch (orientation) {
             case 'N':
                 return 'O';
@@ -256,5 +306,10 @@ public class SimulationService {
             }
         }
     }
+
+    public SimulationService(CreationFichierService creationFichierService) {
+        this.creationFichierService = creationFichierService;
+    }
+
 
 }
