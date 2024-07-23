@@ -3,12 +3,21 @@ package fr.carbonIT.treasurehunt.controller;
 import fr.carbonIT.treasurehunt.model.Carte;
 import fr.carbonIT.treasurehunt.service.SimulationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,7 +41,7 @@ public class SimultationController {
      *         - {@code "message"} : Un message indiquant le succès ou l'échec de la simulation.
      *         - {@code "result"} : La représentation sous forme de chaîne de la carte après la simulation, ou un message d'erreur en cas de problème.
      */
-    @PostMapping("/simulate")
+    @GetMapping("/simulate")
     public Map<String, String> simulate(@RequestParam String filePath) {
         Map<String, String> response = new HashMap<>();
         try {
@@ -49,4 +58,28 @@ public class SimultationController {
         }
         return response;
     }
+
+    /**
+     * Endpoint pour télécharger le fichier de sortie généré par la simulation.
+     *
+     * @return ResponseEntity contenant le fichier en tant que ressource d'entrée.
+     * @throws IOException Si une erreur survient lors de la lecture du fichier.
+     */
+    @GetMapping("/download")
+    public ResponseEntity<InputStreamResource> downloadFile() throws IOException {
+        File file = new File("C:\\Users\\Kevin\\Desktop\\CarbonIT\\carteTresor\\BackEnd_Tresor\\output.txt");
+        if (!file.exists()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        FileInputStream fis = new FileInputStream(file);
+        InputStreamResource resource = new InputStreamResource(fis);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=output.txt");
+        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+
+        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+    }
+
 }

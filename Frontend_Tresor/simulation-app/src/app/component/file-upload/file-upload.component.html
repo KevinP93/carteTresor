@@ -1,0 +1,15 @@
+<div class="upload-container">
+  <h2>Téléchargez votre fichier</h2>
+  <div
+    class="upload-area"
+    (click)="fileInput.click()"
+    (dragover)="onDragOver($event)"
+    (drop)="onDrop($event)"
+  >
+    <p>Glissez et déposez votre fichier .txt ici</p>
+    <p>ou</p>
+    <p>cliquez pour sélectionner un fichier</p>
+    <input type="file" #fileInput (change)="onFileChange($event)" hidden />
+  </div>
+  <button type="submit" [disabled]="!fileForm.valid" (click)="onSubmit()">Téléverser</button>
+</div>

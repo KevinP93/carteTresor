@@ -1,0 +1,65 @@
+.treasure-hunt-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: linear-gradient(to right, #ff8c00, #ff6347); /* Dégradé coloré */
+    color: white;
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .treasure-hunt-content {
+    background: rgba(0, 0, 0, 0.6); /* Fond semi-transparent */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    margin: 20px;
+  }
+  
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+  }
+  
+  p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+  }
+  
+  button {
+    background: #ffd700; /* Couleur dorée */
+    color: #333;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  button:hover {
+    background: #f0e68c; /* Couleur dorée plus claire au survol */
+  }
+  .map-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 40px); /* Ajuster selon la taille de la grille */
+    grid-template-rows: repeat(10, 40px); /* Ajuster selon la taille de la grille */
+    gap: 1px; /* Espacement entre les cellules */
+  }
+  
+  .map-grid .cell {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #ddd; /* Bordure des cellules */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  
+  .map-grid .cell {
+    background-color: white; /* Couleur de fond par défaut */
+  }
+  
