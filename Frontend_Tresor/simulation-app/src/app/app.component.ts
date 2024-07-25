@@ -14,5 +14,9 @@ import { Router, RouterOutlet } from '@angular/router';
 export class AppComponent {
   title = 'simulation-app';
 
+  constructor(private router: Router) {}
 
+  backHome() {
+    this.router.navigate(['/']);
+  }
 }

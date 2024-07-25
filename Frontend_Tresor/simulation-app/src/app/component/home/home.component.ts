@@ -14,6 +14,5 @@ export class HomeComponent {
   }
   uploadFile(){
     this.router.navigate(['/fileUpload']);
-    console.log("click")
   }
 }

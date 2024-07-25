@@ -19,6 +19,7 @@ public class CreationFichierService {
 
     private static final Logger logger = LoggerFactory.getLogger(CreationFichierService.class);
 
+
     /**
      * Crée un fichier représentant une carte de jeu basée sur les informations fournies dans l'objet Carte.
      *
@@ -35,7 +36,7 @@ public class CreationFichierService {
      * @throws IOException Si une erreur se produit lors de la création ou de l'écriture dans le fichier.
      */
     public void creerFichierCarte(Carte carte, String filePath) throws IOException {
-        logger.info("Début de la création du fichier : {}", filePath);
+
         String absolutePath = new File(filePath).getAbsolutePath();
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             int hauteur = carte.getHauteur();

@@ -1,7 +1,10 @@
 package fr.carbonIT.treasurehunt.controller;
 
 import fr.carbonIT.treasurehunt.model.Carte;
+import fr.carbonIT.treasurehunt.service.CreationFichierService;
 import fr.carbonIT.treasurehunt.service.SimulationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -11,22 +14,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api")
-public class SimultationController {
+public class SimulationController {
 
     @Autowired
     private SimulationService simulationService;
+    private static final Logger logger = LoggerFactory.getLogger(CreationFichierService.class);
+    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+
 
     /**
      * Gère la simulation des mouvements des aventuriers en fonction du fichier spécifié.
@@ -42,22 +48,23 @@ public class SimultationController {
      *         - {@code "result"} : La représentation sous forme de chaîne de la carte après la simulation, ou un message d'erreur en cas de problème.
      */
     @GetMapping("/simulate")
-    public Map<String, String> simulate(@RequestParam String filePath) {
-        Map<String, String> response = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> simulate(@RequestParam String filePath) {
+        Map<String, Object> response = new HashMap<>();
         try {
             Carte carte = simulationService.lireCarte(filePath);
             if (carte != null) {
                 carte = simulationService.executerSimulation(carte);
                 response.put("message", "Simulation terminée avec succès.");
-                response.put("result", carte.toString());
+                response.put("result", carte); // Envoyer l'objet carte directement
             } else {
                 response.put("message", "Erreur lors de la lecture de la carte.");
             }
         } catch (Exception e) {
             response.put("message", "Erreur lors de la lecture du fichier : " + e.getMessage());
         }
-        return response;
+        return ResponseEntity.ok(response);
     }
+
 
     /**
      * Endpoint pour télécharger le fichier de sortie généré par la simulation.
@@ -72,14 +79,44 @@ public class SimultationController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        FileInputStream fis = new FileInputStream(file);
-        InputStreamResource resource = new InputStreamResource(fis);
+        FileInputStream fis = null;
+        InputStreamResource resource = null;
+        try {
+            fis = new FileInputStream(file);
+            resource = new InputStreamResource(fis);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=output.txt");
-        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=output.txt");
+            headers.add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
 
-        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+            // Schedule the file deletion after the response is sent
+            scheduleFileDeletion(file);
+
+            return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            // Handle exceptions (e.g., logging)
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    /**
+     * Planifie la suppression d'un fichier après un certain délai.
+     *
+     * @param file Le fichier à supprimer.
+     */
+    void scheduleFileDeletion(File file) {
+        executor.schedule(() -> {
+            try {
+                if (file.exists()) {
+                    Files.delete(file.toPath());
+                    logger.info("Fichier supprimé avec succès : {}");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                // Handle exception (e.g., logging)
+            }
+        }, 10, TimeUnit.SECONDS);
     }
 
 }

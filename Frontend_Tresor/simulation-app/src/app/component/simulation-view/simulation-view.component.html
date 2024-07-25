@@ -1,7 +1,36 @@
 <div class="treasure-hunt-container">
-    <div class="treasure-hunt-content">
-      <h1>Bienvenue dans la Chasse au Trésor</h1>
-      <p>Préparez-vous à partir à l'aventure pour découvrir des trésors cachés. Cliquez sur le bouton ci-dessous pour commencer la chasse.</p>
-      <button (click)="startHunt()">Commencer la Chasse</button>
-    </div>
+  <div *ngIf="!isSimulationStarted" class="treasure-hunt-content">
+    <h1>Bienvenue dans la Chasse au Trésor</h1>
+    <p>Préparez-vous à partir à l'aventure pour découvrir des trésors cachés. Cliquez sur le bouton ci-dessous pour commencer la chasse.</p>
+    <button (click)="startHunt()">Simulation de la Chasse</button>
+  </div>
+
+  <div *ngIf="isSimulationStarted && carte" class="map-container">
+    <h2>Félicitations !!</h2>
+    <p>{{ simulationResult }}</p>
+    <table>
+      <tr *ngFor="let row of getGrid()">
+        <td *ngFor="let cell of row">
+          <ng-container [ngSwitch]="cell.symbol">
+            <span *ngSwitchCase="'M'" class="icon-container montagne">
+              <i class="fas fa-mountain"></i>
+            </span>
+            <span *ngSwitchCase="'A'" class="icon-container aventurier">
+              <i class="fas fa-user"></i>
+              <span class="aventurier-name">{{ cell.nom }}</span>
+              <div class="aventurier-info">
+                <p>Orientation: {{ cell.orientation }}</p>
+                <p>Nombre de trésor(s): {{ cell.tresorsCollectes }}</p>
+              </div>
+            </span>
+            <span *ngSwitchCase="'T'" class="icon-container tresor">
+              <i class="fas fa-gem"></i>
+              <span *ngIf="cell.count" class="count">{{ cell.count }}</span>
+            </span>
+            <span *ngSwitchDefault>&nbsp;</span>
+          </ng-container>
+        </td>
+      </tr>
+    </table>
+  </div>
 </div>

@@ -1,2 +1,16 @@
-
-<router-outlet></router-outlet> 
+<div class="app-container">
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <h1>Carbon IT</h1>
+      </div>
+      <ul class="navbar-menu">
+        <li><a (click)="backHome()">Accueil</a></li>
+        <li><a href="https://github.com/KevinP93" target="_blank" rel="noopener noreferrer">
+          <i class="fab fa-github"></i> GitHub
+      </a></li>
+      
+      </ul>
+    </nav>
+    <router-outlet></router-outlet>
+  </div>
+  

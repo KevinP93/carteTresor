@@ -7,8 +7,8 @@ import { HomeComponent } from './component/home/home.component';
 
 export const routes: Routes = [
     { path: '', component: HomeComponent },
-    { path: 'fileUpload', component: FileUploadComponent }, // Notez l'absence de '/' au début
-    { path: 'simulationView', component: SimulationViewComponent }, // Notez l'absence de ':'
+    { path: 'fileUpload', component: FileUploadComponent }, 
+    { path: 'simulationView', component: SimulationViewComponent }, 
   ];
 
   

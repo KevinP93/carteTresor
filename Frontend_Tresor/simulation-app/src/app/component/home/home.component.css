@@ -1,36 +1,50 @@
 .home-container {
-    text-align: center;
-    padding: 50px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    
-    .header {
-      margin-bottom: 30px;
-      
-      h1 {
-        font-size: 2.5rem;
-        color: #333;
-        margin-bottom: 20px;
-      }
+  text-align: center;
+  padding: 50px;
+  background: url('../../../assets/old-map-background.jpg') no-repeat center center fixed;
+  background-size: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+}
+
+.header {
+  margin-bottom: 30px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 20px;
+  border-radius: 10px;
   
-      p {
-        font-size: 1.2rem;
-        color: #666;
-        max-width: 600px;
-        margin: 0 auto;
-      }
-    }
-    
-    .actions {
-      button {
-        margin: 0 10px;
-        padding: 10px 20px;
-        font-size: 1.1rem;
-      }
-    }
+  h1 {
+      font-size: 2.5rem;
+      color: #ffd700; /* gold color */
+      margin-bottom: 20px;
   }
-  
+
+  p {
+      font-size: 1.2rem;
+      color: #fff;
+      max-width: 600px;
+      margin: 0 auto;
+  }
+}
+
+.actions {
+  button {
+      margin: 0 10px;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      background-color: #ffd700; /* gold color */
+      border: none;
+      color: #000;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+      
+      &:hover {
+          background-color: #ffa500; /* orange color */
+          transform: scale(1.05);
+      }
+  }
+}

@@ -1,5 +1,6 @@
 package fr.carbonIT.treasurehunt.service;
 
+
 import fr.carbonIT.treasurehunt.model.Aventurier;
 import fr.carbonIT.treasurehunt.model.Carte;
 import fr.carbonIT.treasurehunt.model.Montagne;
@@ -20,6 +21,8 @@ public class SimulationService {
 
     @Autowired
     private CreationFichierService creationFichierService;
+
+
 
 
     /**
@@ -71,6 +74,8 @@ public class SimulationService {
         return carte;
     }
 
+
+
     /**
      * Exécute la simulation des mouvements des aventuriers sur la carte.
      *
@@ -82,7 +87,7 @@ public class SimulationService {
      * @param carte La carte contenant les aventuriers et les autres éléments du jeu.
      * @return La carte mise à jour après l'exécution de la simulation.
      */
-    public Carte executerSimulation(Carte carte) {
+    public Carte executerSimulation(Carte carte) throws IOException {
         List<Aventurier> aventuriers = new ArrayList<>(carte.getAventuriers());
         int nombreAventuriers = aventuriers.size();
 
