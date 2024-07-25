@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background: linear-gradient(to right, #ff8c00, #ff6347); /* Dégradé coloré */
+  background: linear-gradient(to right, #1e9b05, #027e0c); /* Dégradé coloré */
   color: white;
   text-align: center;
   font-family: 'Arial', sans-serif;
@@ -46,6 +46,10 @@ button:hover {
   background: #f0e68c; /* Couleur dorée plus claire au survol */
 }
 
+
+
+
+
 /* Conteneur de la carte */
 .map-container {
   width: 80vw; /* Largeur de la carte à 80% de la largeur de la fenêtre */
@@ -69,8 +73,7 @@ table {
 
 /* Style des cellules */
 td {
-  width: 33.33%; /* Ajuste pour 3 colonnes */
-  height: 25%; /* Ajuste pour 4 rangées */
+ 
   text-align: center;
   vertical-align: middle; /* Centre verticalement le contenu */
   border: 1px solid #ddd; /* Bordure des cellules */
@@ -113,13 +116,27 @@ td:hover .aventurier-info {
 }
 
 .montagne i {
-  color: gray;
+  color: rgb(245, 244, 244);
 }
 
 .aventurier i {
-  color: yellow;
+  color: rgb(255, 0, 0);
+  cursor: pointer;
 }
 
 .tresor i {
   color: gold;
 }
+
+
+.error-message {
+  color: red; /* Couleur du texte en rouge */
+  font-size: 1.2rem; /* Taille de la police légèrement plus grande */
+  margin-top: 20px; /* Espace au-dessus du message d'erreur */
+  text-align: center; /* Centrer le texte */
+}
+
+.aventurier-highlight {
+  color: gold;
+}
+

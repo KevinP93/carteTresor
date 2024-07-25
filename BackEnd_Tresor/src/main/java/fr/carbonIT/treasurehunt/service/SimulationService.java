@@ -6,6 +6,8 @@ import fr.carbonIT.treasurehunt.model.Carte;
 import fr.carbonIT.treasurehunt.model.Montagne;
 import fr.carbonIT.treasurehunt.model.Tresor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,8 @@ public class SimulationService {
     @Autowired
     private CreationFichierService creationFichierService;
 
+    private static final Logger logger = LoggerFactory.getLogger(CreationFichierService.class);
+
 
 
 
@@ -37,40 +41,71 @@ public class SimulationService {
      * @return L'objet {@link Carte} contenant les informations lues depuis le fichier.
      * @throws IOException Si un problème survient lors de la lecture du fichier.
      */
-    public Carte lireCarte(String filePath) throws IOException {
+    public Carte lireCarte(String filePath) throws IOException, IllegalArgumentException {
 
         // Création de la carte avec des listes initialisées
         Carte carte = new Carte();
+        int largeur = 0;
+        int hauteur = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.startsWith("C")) {
+                    // Lecture des dimensions de la carte
                     String[] parts = line.split(" - ");
-                    carte.setLargeur(Integer.parseInt(parts[1]));
-                    carte.setHauteur(Integer.parseInt(parts[2]));
+                    largeur = Integer.parseInt(parts[1]);
+                    hauteur = Integer.parseInt(parts[2]);
+                    carte.setLargeur(largeur);
+                    carte.setHauteur(hauteur);
                 } else if (line.startsWith("M")) {
+                    // Lecture des montagnes
                     String[] parts = line.split(" - ");
                     int x = Integer.parseInt(parts[1]);
                     int y = Integer.parseInt(parts[2]);
+
+                    if (x < 0 || x >= largeur || y < 0 || y >= hauteur) {
+                        String errorMessage = "Erreur : La montagne à (" + x + ", " + y + ") est hors des limites de la carte.";
+                        logger.error(errorMessage);
+                        throw new IllegalArgumentException(errorMessage);
+                    }
+
                     carte.getMontagnes().add(new Montagne(x, y));
                 } else if (line.startsWith("T")) {
+                    // Lecture des trésors
                     String[] parts = line.split(" - ");
                     int x = Integer.parseInt(parts[1]);
                     int y = Integer.parseInt(parts[2]);
                     int nombre = Integer.parseInt(parts[3]);
+
+                    if (x < 0 || x >= largeur || y < 0 || y >= hauteur) {
+                        String errorMessage = "Erreur : Le trésor à (" + x + ", " + y + ") est hors des limites de la carte.";
+                        logger.error(errorMessage);
+                        throw new IllegalArgumentException(errorMessage);
+                    }
+
                     carte.getTresors().add(new Tresor(x, y, nombre));
                 } else if (line.startsWith("A")) {
+                    // Lecture des aventuriers
                     String[] parts = line.split(" - ");
                     String nom = parts[1];
                     int x = Integer.parseInt(parts[2]);
                     int y = Integer.parseInt(parts[3]);
                     char orientation = parts[4].charAt(0);
                     String mouvements = parts[5];
-                    carte.getAventuriers().add(new Aventurier(nom, x, y, orientation, mouvements,0));
+
+                    if (x < 0 || x >= largeur || y < 0 || y >= hauteur) {
+                        String errorMessage = "Erreur : L'aventurier " + nom + " à (" + x + ", " + y + ") est hors des limites de la carte.";
+                        logger.error(errorMessage);
+                        throw new IllegalArgumentException(errorMessage);
+
+                    }
+
+                    carte.getAventuriers().add(new Aventurier(nom, x, y, orientation, mouvements, 0));
                 }
             }
         }
+
         return carte;
     }
 

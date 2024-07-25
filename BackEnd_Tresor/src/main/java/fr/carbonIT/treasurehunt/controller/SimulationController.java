@@ -52,17 +52,31 @@ public class SimulationController {
         Map<String, Object> response = new HashMap<>();
         try {
             Carte carte = simulationService.lireCarte(filePath);
-            if (carte != null) {
-                carte = simulationService.executerSimulation(carte);
-                response.put("message", "Simulation terminée avec succès.");
-                response.put("result", carte); // Envoyer l'objet carte directement
-            } else {
+            if (carte == null) {
                 response.put("message", "Erreur lors de la lecture de la carte.");
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
+
+            carte = simulationService.executerSimulation(carte);
+            response.put("message", "Simulation terminée avec succès.");
+            response.put("result", carte); // Envoyer l'objet carte directement
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // Erreur spécifique liée à la carte
+            logger.error("Erreur lors de la lecture de la carte : {}", e.getMessage());
+            response.put("message", "Erreur lors de la lecture de la carte : " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        } catch (IOException e) {
+            // Erreur liée à l'I/O
+            logger.error("Erreur de lecture du fichier : {}", e.getMessage());
+            response.put("message", "Erreur de lecture du fichier : " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            response.put("message", "Erreur lors de la lecture du fichier : " + e.getMessage());
+            // Erreur générale
+            logger.error("Erreur interne du serveur : {}", e.getMessage());
+            response.put("message", "Erreur interne du serveur : " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return ResponseEntity.ok(response);
     }
 
 

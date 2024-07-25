@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { SimulationService } from '../../services/simulation.service';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Carte } from '../../model/carte';
+import { Aventurier, Carte } from '../../model/carte';
 
 @Component({
   selector: 'app-simulation-view',
@@ -16,6 +16,8 @@ export class SimulationViewComponent {
   simulationResult: string = '';
   isSimulationStarted = false;
   carte: Carte | undefined;
+  nombreColonnes: number = 0; 
+  nombreRangées: number = 0;
 
   constructor(private route: ActivatedRoute, private simulationService: SimulationService) {}
 
@@ -38,12 +40,13 @@ export class SimulationViewComponent {
         },
         error: (err) => {
           console.error('Simulation error:', err);
-          this.simulationResult = 'Erreur lors de la simulation.';
+          this.simulationResult = 'Erreur lors de la lecture de la carte.'; // Message d'erreur générique
           this.isSimulationStarted = false;
         }
       });
     }
   }
+  
   
   
   
@@ -72,6 +75,8 @@ export class SimulationViewComponent {
   
     const hauteur = this.carte.hauteur ?? 0;
     const largeur = this.carte.largeur ?? 0;
+    this.nombreRangées = hauteur;
+    this.nombreColonnes = largeur;
   
     const grid = Array.from({ length: hauteur }, () =>
       Array(largeur).fill({ symbol: ' ', count: undefined, orientation: undefined, nom: undefined, tresorsCollectes: undefined })
@@ -101,6 +106,25 @@ export class SimulationViewComponent {
     return grid;
   }
     
+  getCellWidth(): string {
+    return `${100 / this.nombreColonnes}%`;
+  }
+
+  getCellHeight(): string {
+    return `${100 / this.nombreRangées}%`;
+  }
   
+ // Méthode pour obtenir le nom de l'aventurier avec le plus de trésors collectés
+getAventurierAvecMaxTresors(): string | null {
+  if (this.carte && this.carte.aventuriers) {
+    const aventurierAvecMaxTresors = this.carte.aventuriers.reduce((prev, current) => 
+      (prev.tresorsCollectes > current.tresorsCollectes) ? prev : current
+    , this.carte.aventuriers[0]);
+
+    return aventurierAvecMaxTresors ? aventurierAvecMaxTresors.nom : null;
+  }
+  return null;
+}
+
 
 }
